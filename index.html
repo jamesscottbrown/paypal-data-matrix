@@ -212,6 +212,7 @@ function listCompaniesByDataType(dataType){
 
   var div = d3.select("#company-list");
   div.node().innerHTML = "";
+  div.append("h2").text("Companies")
 
   var subData = data.companyDataTypes.filter(function(d){ return d.dataType == dataType });
 
@@ -247,6 +248,7 @@ function listCompaniesByDataTypeAndCategory(dataType, category_name){
 
   var div = d3.select("#company-list");
   div.node().innerHTML = "";
+  div.append("h2").text("Companies")
 
   var subData = data.companyDataTypes.filter(function(d){ return d.dataType == dataType });
   subData = subData.filter(function(d){ return d.category_name == category_name; })
@@ -280,6 +282,7 @@ function listCompaniesByCategory(category_name){
 
   var div = d3.select("#company-list");
   div.node().innerHTML = "";
+  div.append("h2").text("Companies")
 
   var subData = data.companyDataTypes.filter(function(d){ return d.category_name == category_name });
 
