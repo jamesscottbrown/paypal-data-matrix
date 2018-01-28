@@ -25,6 +25,20 @@
 }
 
 
+div.tooltip { 
+    position: absolute;     
+    text-align: left;     
+    margin: 0 auto;
+
+    padding: 2px;       
+    font: 12px sans-serif;    
+    background: lightsteelblue; 
+    border: 0px;    
+    border-radius: 8px;     
+    pointer-events: none;     
+}
+
+
 </style>
 
 <h1>Who PayPal Shares your data With</h1>
@@ -37,6 +51,7 @@
 
 <svg width="2000" height="1000"></svg>
 <div id="company-list"></div>
+<div id="company-description"></div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-color.v1.min.js"></script>
@@ -77,10 +92,14 @@ var category_columns_g = svg.append("g")
               .attr("transform", "translate(" + (margin.left + space.bars + space.row_labels) + "," + margin.top + ")")
               .attr("id", "category-columns");
 
+// Define the div for the tooltip
+var tooltip = d3.select("body").append("div") 
+    .attr("class", "tooltip")       
+    .style("opacity", 0);
+
 
 d3.json("paypal.json", function(data) {
 
-  data.companies.sort(function(a,b){ return a.category_num - b.category_num; })
   data.dataTypes.sort(function(a,b){ return a.frequency - b.frequency; })
 
 
@@ -189,6 +208,8 @@ function listCompaniesByDataType(dataType){
   counts.style("fill", function(d){ return d.dataType == dataType ? yellow : "black"; });
   column_titles.style("fill", "black");
 
+  d3.select("#company-description").node().innerHTML = "";
+
   var div = d3.select("#company-list");
   div.node().innerHTML = "";
 
@@ -205,7 +226,18 @@ function listCompaniesByDataType(dataType){
     .data(companyNames)
     .enter()
     .append("li")
-    .text(function(d){ return d});
+    .text(function(d){ return d})
+    .on("click", function(d){ 
+        var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.dataType == dataType })[0];
+        describeCompany(d, usageData);
+     })
+    .on("mouseover", function(d){ 
+        var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.dataType == dataType })[0];
+        companyTooltip(d, usageData);
+       })
+    .on("mouseout", clearTooltip)
+;
+
 }
 
 
@@ -216,6 +248,8 @@ function listCompaniesByDataTypeAndCategory(dataType, category_name){
   dataTypeLabels.style("fill", "black");
   counts.style("fill", function(d){ return (d.dataType == dataType && d.category_name == category_name)? yellow : "black"; });
   column_titles.style("fill", "black");
+
+  d3.select("#company-description").node().innerHTML = "";
 
   var div = d3.select("#company-list");
   div.node().innerHTML = "";
@@ -233,7 +267,17 @@ function listCompaniesByDataTypeAndCategory(dataType, category_name){
     .data(companyNames)
     .enter()
     .append("li")
-    .text(function(d){ return d});
+    .text(function(d){ return d})
+    .on("click", function(d){ 
+        var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.category_name == category_name })[0];
+        describeCompany(d, usageData);
+       })
+    .on("mouseover", function(d){ 
+        var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.category_name == category_name })[0];
+        companyTooltip(d, usageData);
+       })
+    .on("mouseout", clearTooltip);
+
 }
 
 
@@ -243,6 +287,8 @@ function listCompaniesByCategory(category_name){
   dataTypeLabels.style("fill", "black");
   counts.style("fill", function(d){ return d.category_name == category_name ? yellow : "black"; });
   column_titles.style("fill", function(d){ return d.name == category_name ? yellow : "black"; });
+
+  d3.select("#company-description").node().innerHTML = "";
 
   var div = d3.select("#company-list");
   div.node().innerHTML = "";
@@ -260,10 +306,43 @@ function listCompaniesByCategory(category_name){
     .data(companyNames)
     .enter()
     .append("li")
-    .text(function(d){ return d});
+    .text(function(d){ return d})
+    .on("click", function(d){ 
+        var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.category_name == category_name })[0];
+        describeCompany(d, usageData);
+    })
+    .on("mouseover", function(d){ 
+      var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.category_name == category_name })[0];
+      companyTooltip(d, usageData);
+     })
+    .on("mouseout", clearTooltip)
+;
 
 }
 
+function describeCompany(companyName, usageData){
+  var div = d3.select("#company-description");
+  div.node().innerHTML = "";
+
+  div.append("p").text(usageData.purpose);
+  div.append("p").text(usageData.data);
+}
+
+
+function companyTooltip(companyName, usageData){
+  tooltip.transition()    
+    .duration(200)    
+    .style("opacity", .9);    
+
+  tooltip.html("<p><b>Purpose:</b> " + usageData.purpose + "</p> <p><b>Data:</b>"  + usageData.data + "</p>")  
+      .style("left", (d3.event.pageX) + "px")   
+      .style("top", (d3.event.pageY - 28) + "px");
+}
+function clearTooltip(){
+              tooltip.transition()    
+                .duration(500)    
+                .style("opacity", 0);
+}
 
 
 
