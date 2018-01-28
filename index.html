@@ -51,7 +51,6 @@ div.tooltip {
 
 <svg width="2000" height="1000"></svg>
 <div id="company-list"></div>
-<div id="company-description"></div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-color.v1.min.js"></script>
@@ -208,7 +207,6 @@ function listCompaniesByDataType(dataType){
   counts.style("fill", function(d){ return d.dataType == dataType ? yellow : "black"; });
   column_titles.style("fill", "black");
 
-  d3.select("#company-description").node().innerHTML = "";
 
   var div = d3.select("#company-list");
   div.node().innerHTML = "";
@@ -227,10 +225,6 @@ function listCompaniesByDataType(dataType){
     .enter()
     .append("li")
     .text(function(d){ return d})
-    .on("click", function(d){ 
-        var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.dataType == dataType })[0];
-        describeCompany(d, usageData);
-     })
     .on("mouseover", function(d){ 
         var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.dataType == dataType })[0];
         companyTooltip(d, usageData);
@@ -249,8 +243,6 @@ function listCompaniesByDataTypeAndCategory(dataType, category_name){
   counts.style("fill", function(d){ return (d.dataType == dataType && d.category_name == category_name)? yellow : "black"; });
   column_titles.style("fill", "black");
 
-  d3.select("#company-description").node().innerHTML = "";
-
   var div = d3.select("#company-list");
   div.node().innerHTML = "";
 
@@ -268,10 +260,6 @@ function listCompaniesByDataTypeAndCategory(dataType, category_name){
     .enter()
     .append("li")
     .text(function(d){ return d})
-    .on("click", function(d){ 
-        var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.category_name == category_name })[0];
-        describeCompany(d, usageData);
-       })
     .on("mouseover", function(d){ 
         var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.category_name == category_name })[0];
         companyTooltip(d, usageData);
@@ -287,8 +275,6 @@ function listCompaniesByCategory(category_name){
   dataTypeLabels.style("fill", "black");
   counts.style("fill", function(d){ return d.category_name == category_name ? yellow : "black"; });
   column_titles.style("fill", function(d){ return d.name == category_name ? yellow : "black"; });
-
-  d3.select("#company-description").node().innerHTML = "";
 
   var div = d3.select("#company-list");
   div.node().innerHTML = "";
@@ -307,27 +293,13 @@ function listCompaniesByCategory(category_name){
     .enter()
     .append("li")
     .text(function(d){ return d})
-    .on("click", function(d){ 
-        var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.category_name == category_name })[0];
-        describeCompany(d, usageData);
-    })
     .on("mouseover", function(d){ 
       var usageData = data.companyDataTypes.filter(function(d2){ return d2.company_name == d && d2.category_name == category_name })[0];
       companyTooltip(d, usageData);
      })
-    .on("mouseout", clearTooltip)
-;
+    .on("mouseout", clearTooltip);
 
 }
-
-function describeCompany(companyName, usageData){
-  var div = d3.select("#company-description");
-  div.node().innerHTML = "";
-
-  div.append("p").text(usageData.purpose);
-  div.append("p").text(usageData.data);
-}
-
 
 function companyTooltip(companyName, usageData){
   tooltip.transition()    
