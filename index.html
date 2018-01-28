@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.company {
+  font-size: 6pt;
+}
+
+.dataType {
+  font-size: 6pt;
+}
+
+.count{
+  font-size: 6pt;
+}
+
+.lines{
+  stroke: black;
+  stroke-width: 1px;
+  opacity: 0.1;
+}
+.column_titles{
+  font-size:  6pt;
+  writing-mode: tb;
+}
+
+
+</style>
+
+<h1>Who PayPal Shares your data With</h1>
+
+<div id="intro">
+<p>This visualization is based on the <a href="https://www.paypal.com/ie/webapps/mpp/ua/third-parties-list">List of Third Parties (other than PayPal Customers) with Whom Personal Information May be Shared</a> that PayPal published on 1st January 2018.</p>
+
+<p>This HTML table was parsed, and used to show the most commonly shared pieces of personal information. Note that this visualization does not give the full picture: there are types of personal information not shown in this chart. </p>
+</div>
+
+<svg width="2000" height="1000"></svg>
+<div id="company-list"></div>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-color.v1.min.js"></script>
+<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script>
+
+
+var yellow = "#ffc200";
+
+var svg = d3.select("svg"),
+    margin = {top: 180, right: 20, bottom: 30, left: 20},
+    width = +svg.attr("width") - margin.left - margin.right,
+    height = +svg.attr("height") - margin.top - margin.bottom;
+
+var space = {bars: 50, row_labels: 200}
+
+var x = d3.scaleBand().rangeRound([0, width]).padding(0.1),
+    y = d3.scaleLinear().rangeRound([height, 0]);
+
+var color = d3.scaleOrdinal(d3.schemeAccent).domain([0, 13]);
+
+
+var g = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+var left_bar_g = svg.append("g")
+              .attr("id", "row-bars")
+              .attr("transform", "translate(" + (margin.left) + "," + margin.top + ")");
+
+
+var row_g = svg.append("g")
+              .attr("id", "row-labels")
+              .attr("transform", "translate(" + (margin.left + space.bars) + "," + margin.top + ")");
+
+var category_columns_g = svg.append("g")
+              .attr("transform", "translate(" + (margin.left + space.bars + space.row_labels) + "," + margin.top + ")")
+              .attr("id", "category-columns");
+
+
+d3.json("paypal.json", function(data) {
+
+  data.companies.sort(function(a,b){ return a.category_num - b.category_num; })
+  data.dataTypes.sort(function(a,b){ return a.frequency - b.frequency; })
+
+
+  // Truncate data for clarity
+  data.dataTypes = data.dataTypes.filter(function(d){ return d.frequency > 15});
+
+  var excluded = ['etc)', 'claim type (inr', 'remorse', '/or device id to segment user groups for marketing purposes', 'ads'];
+
+    data.dataTypes = data.dataTypes.filter(function(d){ return excluded.indexOf(d.dataType) == -1 });
+
+  var included_data_types = data.dataTypes.map(function(d){ return d.dataType; })
+
+  data.category_datatypes = data.category_datatypes.filter(function(d){ return included_data_types.indexOf(d.dataType) != -1; });
+  data.category_titles = data.category_titles.filter( function(d){ return d.id.indexOf("Please") == -1 });
+
+  y.domain([0, data.dataTypes.length]);
+
+
+var rowHeights = [];
+
+  var dataTypeLabels = row_g.selectAll(".dataType")
+    .data(data.dataTypes)
+    .enter()
+    .append("text")
+    .attr("x", 0)
+    .attr("y", function(d,i){ 
+      rowHeights[d.dataType] = y(i);
+      return y(i); 
+    })
+    .attr("class", "dataType")
+    .text(function(d){ return d.dataType; })
+    .style("fill", "black")
+    .on("mouseover", highlightDataUse)
+    .on("click", function(d){ listCompaniesByDataType(d.dataType); })
+
+
+
+// Freeuency bar to the left
+var stepHeight = y(0) - y(1);
+var frequencyRange = d3.extent( data.dataTypes.map( function(d){ return d.frequency; }));
+ var barX = d3.scaleLinear().rangeRound([0, space.bars])
+                .domain( frequencyRange );
+
+  var leftBars = left_bar_g.selectAll(".bars")
+    .data(data.dataTypes)
+    .enter()
+    .append("rect")
+    .attr("x", function(d){ return margin.left - barX(d.frequency) })
+    .attr("width", function(d){ return barX(d.frequency) })
+    .attr("y", function(d,i){ return y(i) - stepHeight/2 ; })
+    .attr("height", function(d,i){return stepHeight / 2; })
+    .attr("class", "bars")
+    .style("fill", "black")
+    .on("mouseover", highlightDataUse) // highlight row
+    .on("click", function(d){ listCompaniesByDataType(d.dataType); })
+
+
+// Main category squares
+var numCategories = 12;
+
+
+var category_groups = category_columns_g
+                      .selectAll(".category-squares")
+                      .data(data.category_titles)
+                      .enter()
+                      .append("g")
+                      .attr("transform", function(d){ return "translate(" + (30 * +d.id) + ",0)"});
+
+
+// add Labels
+// add y-scale...
+
+
+var counts = category_groups.selectAll(".category_squares")
+                .data(function(d){ return data.category_datatypes.filter(function(d2){ return d2["category_name"] == d["name"]}) })
+                .enter()
+                .append("text")
+                .text(function(d){ return d.frequency; })
+                .attr("y", function(d){  
+                  return rowHeights[d.dataType]
+                })
+                .attr("class", "count")
+                .on("click", function(d){ listCompaniesByDataTypeAndCategory(d.dataType, d.category_name) }) // TODO: FIXME
+
+ 
+var column_titles = category_columns_g.selectAll(".column_titles")
+                .data(data.category_titles)
+                .enter()
+                .append("text")
+                .text(function(d){ return d.name})
+                .attr("x", function(d){ return (30 * +d.id)  } )
+                .attr("y", -126)
+                .attr("class", "column_titles")
+                .on("click", function(d){ listCompaniesByCategory(d.name) })
+
+
+function highlightDataUse(){}
+
+
+// highlight data use only
+function listCompaniesByDataType(dataType){
+
+  // Label highlighting
+  leftBars.style("fill", function(d){ return d.dataType == dataType ? yellow : "black"; });
+  dataTypeLabels.style("fill", function(d){ return d.dataType == dataType ? yellow : "black"; });
+  counts.style("fill", function(d){ return d.dataType == dataType ? yellow : "black"; });
+  column_titles.style("fill", "black");
+
+  var div = d3.select("#company-list");
+  div.node().innerHTML = "";
+
+  var subData = data.companyDataTypes.filter(function(d){ return d.dataType == dataType });
+
+  var companyNames = [];
+  subData.map(function(d){ 
+      if (companyNames.indexOf(d.company_name) == -1){companyNames.push(d.company_name)}
+   })
+
+
+  div.append("ol")
+    .selectAll("li")
+    .data(companyNames)
+    .enter()
+    .append("li")
+    .text(function(d){ return d});
+}
+
+
+function listCompaniesByDataTypeAndCategory(dataType, category_name){
+
+  // Label highlighting
+  leftBars.style("fill", "black");
+  dataTypeLabels.style("fill", "black");
+  counts.style("fill", function(d){ return (d.dataType == dataType && d.category_name == category_name)? yellow : "black"; });
+  column_titles.style("fill", "black");
+
+  var div = d3.select("#company-list");
+  div.node().innerHTML = "";
+
+  var subData = data.companyDataTypes.filter(function(d){ return d.dataType == dataType });
+  subData = subData.filter(function(d){ return d.category_name == category_name; })
+
+  var companyNames = [];
+  subData.map(function(d){ 
+      if (companyNames.indexOf(d.company_name) == -1){companyNames.push(d.company_name)}
+   })
+
+  div.append("ol")
+    .selectAll("li")
+    .data(companyNames)
+    .enter()
+    .append("li")
+    .text(function(d){ return d});
+}
+
+
+function listCompaniesByCategory(category_name){
+  // Label highlighting
+  leftBars.style("fill", "black");
+  dataTypeLabels.style("fill", "black");
+  counts.style("fill", function(d){ return d.category_name == category_name ? yellow : "black"; });
+  column_titles.style("fill", function(d){ return d.name == category_name ? yellow : "black"; });
+
+  var div = d3.select("#company-list");
+  div.node().innerHTML = "";
+
+  var subData = data.companyDataTypes.filter(function(d){ return d.category_name == category_name });
+
+  var companyNames = [];
+  subData.map(function(d){ 
+      if (companyNames.indexOf(d.company_name) == -1){companyNames.push(d.company_name)}
+   })
+
+
+  div.append("ol")
+    .selectAll("li")
+    .data(companyNames)
+    .enter()
+    .append("li")
+    .text(function(d){ return d});
+
+}
+
+
+
+
+
+
+}, function(error, data) {
+  // TODO: throw error
+});
+
+</script>
