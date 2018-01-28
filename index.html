@@ -49,8 +49,10 @@ div.tooltip {
 <p>This HTML table was parsed, and used to show the most commonly shared pieces of personal information. Note that this visualization does not give the full picture: there are types of personal information not shown in this chart. Also, not every customer's information is necessarily shared with every company listed: some may only receive information about customers in particular countries, or falling into particular groups.</p>
 </div>
 
-<svg width="2000" height="1000"></svg>
-<div id="company-list"></div>
+<div>
+<div id="diagram-div" style="float: left; width: 700px;"><svg width="700" height="1000"></svg></div>
+<div id="company-list" style="float: left; width: 200px; height: 1000px; overflow: scroll"></div>
+</div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-color.v1.min.js"></script>
