@@ -42,7 +42,7 @@ def extract_company_data(soup):
             company_data.append({"company_name": company, "purpose": row_data[2], "data": row_data[3], "category_num": category_num, "category_name": category_name})
 
             for dataType in splitDataTypes(row_data[3]):
-                company_datatypes.append({"company_name": company, "dataType": dataType, "category_name": category_name })
+                company_datatypes.append({"company_name": company, "dataType": dataType, "category_name": category_name, "purpose": row_data[2], "data": row_data[3] })
 
         # limit number of rows processed, for easier debugging    
         if row_num == max_rows:
@@ -55,6 +55,8 @@ def extract_company_data(soup):
 def split_company_string(company_string):
 
     company_string = company_string.replace(", Inc", " Inc")
+    company_string = company_string.replace(", LLC.", " LLC")
+    company_string = company_string.replace(", LLC", " LLC")
     company_string = company_string.replace(", and ", ", ")
     company_string = company_string.replace(" and ", ", ")
 
@@ -63,7 +65,7 @@ def split_company_string(company_string):
     in_parens = False
     name = ""
 
-    # split on commas not in brackers
+    # split on commas or semicolons not in brackers
     for c in company_string:
 
         if c == "(":
@@ -72,7 +74,7 @@ def split_company_string(company_string):
         if c == ")":
             in_parens = False
 
-        if c == "," and not in_parens:
+        if (c == "," or c == ";") and not in_parens:
             companies.append(name.strip())
             name = ""
             continue
@@ -96,7 +98,7 @@ def splitDataTypes(str1):
     return list(set(purposes)) # we shouldn't report the same keyword more than once
 
 
-
+# TODO: count keywords in main function
 def count_keywords(company_data):
     counts = {}
     
@@ -164,4 +166,4 @@ print "got data types"
 category_datatypes = aggregate_category_counts(company_data, company_datatypes)
 print "got category_datatypes"
 
-write_output({"category_titles": category_titles, "companies": company_data, "dataTypes": data_types, "companyDataTypes": company_datatypes, "category_datatypes": category_datatypes})
+write_output({"category_titles": category_titles,  "dataTypes": data_types, "companyDataTypes": company_datatypes, "category_datatypes": category_datatypes})
