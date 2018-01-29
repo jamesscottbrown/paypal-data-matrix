@@ -90,7 +90,8 @@ def split_company_string(company_string):
             continue
 
         name = name + c
-        
+
+    companies.append(name)
     return companies
 
 def splitDataTypes(str1):
