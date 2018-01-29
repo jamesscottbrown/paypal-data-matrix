@@ -146,10 +146,18 @@ def count_keywords(company_data, data_and_purposes):
 def aggregate_category_counts(company_data, company_datatypes):
     
     counts = {}
-    
+    counted_tuples = []
+
     for use in company_datatypes:
         category_name = use["category_name"]
         dataType = use["dataType"]
+
+        # don't double count companies that are listed in multiple rows with the same category and datatType
+        # a "print 'skipped'" in this loop revealed 152 examples!
+        t = {"category_name": category_name, "dataType": dataType, "companyName": use["company_name"]}
+        if t in counted_tuples:
+            continue
+        counted_tuples.append(t)
 
         if category_name not in counts.keys():
             counts[category_name] = {}
