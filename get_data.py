@@ -25,6 +25,9 @@ def extract_company_data(soup):
         td = row.find("td")    
         if td and "colspan" in td.attrs.keys():
 
+            if "Please note" in td.text:
+                continue # This is the note under 'Credit Reference and Fraud Agencies', not a new section
+
             category_parts = td.text.split(".")
             category_num = category_parts[0].strip()
             category_name = (".").join(category_parts[1:]).strip()
