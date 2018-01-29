@@ -98,6 +98,7 @@ def splitDataTypes(str1):
     str1 = str1.lower()
     str1 = str1.replace(", and", ", ")
     str1 = str1.replace("and", ",")
+    str1 = str1.replace("e-mail", "email")
     
     purposes = str1.split(",")
     purposes = map(lambda x: x.strip(), purposes)
