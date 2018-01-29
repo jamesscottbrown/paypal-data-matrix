@@ -14,6 +14,8 @@ def extract_company_data(soup):
     company_datatypes = []
     data_and_purposes = []
 
+    company_categories = []
+
     for row in soup.find("table").find_all("tr"):
         row_num += 1
 
@@ -32,8 +34,7 @@ def extract_company_data(soup):
             category_num = category_parts[0].strip()
             category_name = (".").join(category_parts[1:]).strip()
 
-            category_titles.append({"name": category_name, "id": category_num})
-
+            category_titles.append({"name": category_name, "id": category_num, "frequency": 0})
             continue
 
         # Pick out the children of this <tr> tag that are tags
@@ -48,11 +49,22 @@ def extract_company_data(soup):
             data_and_purposes.append(data_and_purpose)
         data_and_purpose_index = data_and_purposes.index(data_and_purpose)
 
-        for company in split_company_string(row_data[1].strip()):   
+        for company in split_company_string(row_data[1].strip()):  
+
+            category_titles[-1]["frequency"] += 1
+
             company_data.append({"company_name": company, "data_and_purpose_index": data_and_purpose_index, "category_num": category_num, "category_name": category_name})
 
             for dataType in splitDataTypes(row_data[3].strip()):
                 company_datatypes.append({"company_name": company, "dataType": dataType, "category_name": category_name, "data_and_purpose_index": data_and_purpose_index})
+
+            #all_company_list.append({"company": company, "data_and_purpose_index": data_and_purpose_index})
+
+            company_category = {"company": company, "category": category_name}
+            if company_category in company_categories:
+                category_titles[-1]["frequency"] -= 1 # company has already been counted
+
+            company_categories.append(company_category)
 
         # limit number of rows processed, for easier debugging    
         if row_num == max_rows:

@@ -64,14 +64,14 @@ div.tooltip {
 var yellow = "#ffc200";
 
 var svg = d3.select("svg"),
-    margin = {top: 180, right: 20, bottom: 30, left: 20},
+    margin = {top: 20, right: 20, bottom: 30, left: 20},
     width = +svg.attr("width") - margin.left - margin.right,
     height = +svg.attr("height") - margin.top - margin.bottom;
 
-var space = {bars: 50, row_labels: 200}
+var space = {bars: 50, row_labels: 200, column_labels: 150}
 
 var x = d3.scaleBand().rangeRound([0, width]).padding(0.1),
-    y = d3.scaleLinear().rangeRound([height, 0]);
+    y = d3.scaleLinear().rangeRound([height - space.column_labels, 0]);
 
 var color = d3.scaleOrdinal(d3.schemeAccent).domain([0, 13]);
 
@@ -82,16 +82,22 @@ var g = svg.append("g")
 
 var left_bar_g = svg.append("g")
               .attr("id", "row-bars")
-              .attr("transform", "translate(" + (margin.left) + "," + margin.top + ")");
+              .attr("transform", "translate(" + (margin.left) + "," + (margin.top+space.column_labels) + ")");
 
 
 var row_g = svg.append("g")
               .attr("id", "row-labels")
-              .attr("transform", "translate(" + (margin.left + space.bars) + "," + margin.top + ")");
+              .attr("transform", "translate(" + (margin.left + space.bars) + "," + (margin.top+space.column_labels) + ")");
+
+
+var category_column_titles_g = svg.append("g")
+              .attr("transform", "translate(" + (margin.left + space.bars + space.row_labels) + "," + (margin.top) + ")")
+              .attr("id", "category-columns");
+
 
 var category_columns_g = svg.append("g")
-              .attr("transform", "translate(" + (margin.left + space.bars + space.row_labels) + "," + margin.top + ")")
-              .attr("id", "category-columns");
+              .attr("transform", "translate(" + (margin.left + space.bars + space.row_labels) + "," + (margin.top+space.column_labels) + ")")
+              .attr("id", "category-column-titles");
 
 // Define the div for the tooltip
 var tooltip = d3.select("body").append("div") 
@@ -103,13 +109,10 @@ d3.json("paypal.json", function(data) {
 
   data.dataTypes.sort(function(a,b){ return a.frequency - b.frequency; })
 
-
   // Truncate data for clarity
-  data.dataTypes = data.dataTypes.filter(function(d){ return d.frequency > 15});
-
+  data.dataTypes = data.dataTypes.filter(function(d){ return d.frequency > 34});
   var excluded = ['etc)', 'claim type (inr', 'remorse', '/or device id to segment user groups for marketing purposes', 'ads'];
-
-    data.dataTypes = data.dataTypes.filter(function(d){ return excluded.indexOf(d.dataType) == -1 });
+  data.dataTypes = data.dataTypes.filter(function(d){ return excluded.indexOf(d.dataType) == -1 });
 
   var included_data_types = data.dataTypes.map(function(d){ return d.dataType; })
 
@@ -186,15 +189,15 @@ var counts = category_groups.selectAll(".category_squares")
                 .on("click", function(d){ listCompaniesByDataTypeAndCategory(d.dataType, d.category_name) }) // TODO: FIXME
 
  
-var column_titles = category_columns_g.selectAll(".column_titles")
+var column_titles = category_column_titles_g.selectAll(".column_titles")
                 .data(data.category_titles)
                 .enter()
                 .append("text")
-                .text(function(d){ return d.name})
+                .text(function(d){ return d.name + " (" + d.frequency + ")"; })
                 .attr("x", function(d){ return (30 * +d.id)  } )
-                .attr("y", -126)
+                .attr("y", 0)
                 .attr("class", "column_titles")
-                .on("click", function(d){ listCompaniesByCategory(d.name) })
+                .on("click", function(d){ listCompaniesByCategory(d.name)  })
 
 
 function highlightDataUse(){}
@@ -314,7 +317,7 @@ function companyTooltip(companyName, companyDataTypes){
 
   var usageData = data.data_and_purposes[companyDataTypes.data_and_purpose_index];
 
-  tooltip.html("<p><b>Purpose:</b> " + usageData.purpose + "</p> <p><b>Data:</b>"  + usageData.data + "</p>")  
+  tooltip.html("<p><b>Purpose:</b> " + usageData.purpose + "</p> <p><b>Data:</b> "  + usageData.data + "</p>")  
       .style("left", (d3.event.pageX) + "px")   
       .style("top", (d3.event.pageY - 28) + "px");
 }
