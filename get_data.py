@@ -12,6 +12,7 @@ def extract_company_data(soup):
     category = ""
     category_titles = []
     company_datatypes = []
+    data_and_purposes = []
 
     for row in soup.find("table").find_all("tr"):
         row_num += 1
@@ -38,17 +39,23 @@ def extract_company_data(soup):
             if isinstance(c, element.Tag):
                 row_data.append(c.text)            
 
-        for company in split_company_string(row_data[1]):   
-            company_data.append({"company_name": company, "purpose": row_data[2], "data": row_data[3], "category_num": category_num, "category_name": category_name})
 
-            for dataType in splitDataTypes(row_data[3]):
-                company_datatypes.append({"company_name": company, "dataType": dataType, "category_name": category_name, "purpose": row_data[2], "data": row_data[3] })
+        data_and_purpose = {"data": row_data[3].strip(), "purpose": row_data[2].strip()}
+        if data_and_purpose not in data_and_purposes:
+            data_and_purposes.append(data_and_purpose)
+        data_and_purpose_index = data_and_purposes.index(data_and_purpose)
+
+        for company in split_company_string(row_data[1].strip()):   
+            company_data.append({"company_name": company, "data_and_purpose_index": data_and_purpose_index, "category_num": category_num, "category_name": category_name})
+
+            for dataType in splitDataTypes(row_data[3].strip()):
+                company_datatypes.append({"company_name": company, "dataType": dataType, "category_name": category_name, "data_and_purpose_index": data_and_purpose_index})
 
         # limit number of rows processed, for easier debugging    
         if row_num == max_rows:
             break
             
-    return company_data, category_titles, company_datatypes
+    return company_data, category_titles, company_datatypes, data_and_purposes
 
 
 
@@ -99,14 +106,15 @@ def splitDataTypes(str1):
 
 
 # TODO: count keywords in main function
-def count_keywords(company_data):
+def count_keywords(company_data, data_and_purposes):
     counts = {}
     
     for c in company_data:
         #if accept[c["data"]] != "y":
         #    continue
         
-        for keyword in splitDataTypes(c["data"]):
+        data = data_and_purposes[c["data_and_purpose_index"]]["data"]
+        for keyword in splitDataTypes(data):
             if keyword not in counts.keys():
                 counts[keyword] = 0
             counts[keyword] += 1
@@ -157,13 +165,13 @@ print "PARSED"
 #inputFile = open('valid.pkl', 'rb')
 #pickle.load(inputFile)
 
-company_data, category_titles, company_datatypes = extract_company_data(soup)
+company_data, category_titles, company_datatypes, data_and_purposes = extract_company_data(soup)
 print "got companies"
 
-data_types = count_keywords(company_data)
+data_types = count_keywords(company_data, data_and_purposes)
 print "got data types"
 
 category_datatypes = aggregate_category_counts(company_data, company_datatypes)
 print "got category_datatypes"
 
-write_output({"category_titles": category_titles,  "dataTypes": data_types, "companyDataTypes": company_datatypes, "category_datatypes": category_datatypes})
+write_output({"category_titles": category_titles,  "dataTypes": data_types, "companyDataTypes": company_datatypes, "category_datatypes": category_datatypes, "data_and_purposes": data_and_purposes})

@@ -306,10 +306,13 @@ function listCompaniesByCategory(category_name){
 
 }
 
-function companyTooltip(companyName, usageData){
+function companyTooltip(companyName, companyDataTypes){
   tooltip.transition()    
     .duration(200)    
     .style("opacity", .9);    
+
+
+  var usageData = data.data_and_purposes[companyDataTypes.data_and_purpose_index];
 
   tooltip.html("<p><b>Purpose:</b> " + usageData.purpose + "</p> <p><b>Data:</b>"  + usageData.data + "</p>")  
       .style("left", (d3.event.pageX) + "px")   
