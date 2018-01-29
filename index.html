@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+ <link rel="stylesheet" type="text/css" href="page.css" /> 
+
 <style>
 
 .company {
@@ -41,18 +43,25 @@ div.tooltip {
 
 </style>
 
-<h1>Who PayPal Shares your data With</h1>
+<div class="page-header">
+<h2>How PayPal shares your data <br /><small>According to the <a href="https://www.paypal.com/ie/webapps/mpp/ua/third-parties-list">List of Third Parties (other than PayPal Customers) with Whom Personal Information May be Shared</a> </small>  </h2>
+</div>
 
 <div id="intro">
-<p>This visualization is based on the <a href="https://www.paypal.com/ie/webapps/mpp/ua/third-parties-list">List of Third Parties (other than PayPal Customers) with Whom Personal Information May be Shared</a> that PayPal published on 1st January 2018.</p>
+<p>Not every customer's information is necessarily shared with every company listed: some may only receive information about customers in particular countries, or falling into particular groups (such as having an outstanding debt).</p>
 
-<p>This HTML table was parsed, and used to show the most commonly shared pieces of personal information. Note that this visualization does not give the full picture: there are types of personal information not shown in this chart. Also, not every customer's information is necessarily shared with every company listed: some may only receive information about customers in particular countries, or falling into particular groups.</p>
+<p>While this matrix is truncated to only show the most commonly shared pieces of personal information, clicking on a category name will show <b>all</b> of the corresponding companies in PayPal's list. Hovering over a company name will show the full list of data types shared, and the purpose for sharing them. </p>
+
+<p> <b>Caveat</b> 
+There may also be errors in how information was extracted from PayPal's original list, which has several problems: typos in the original data ("Sky Cconsulting"), inconsistent spelling ("email" and "e-mail"), vague phrases rather than explicit lists ("all information obtained from surveys", "All account information"), and inconsistent use of commas (sometimes semicolons are used to separate names of companies given the same data access; sometimes commas are used to separate both different company names and parts of the same company name). Ideally, there would be some open standard for reporting how data is shared that included official company registration numbers and a controlled vocabulary for data types.</p>
 </div>
+
 
 <div>
 <div id="diagram-div" style="float: left; width: 700px;"><svg width="700" height="1000"></svg></div>
 <div id="company-list" style="float: left; width: 200px; height: 1000px; overflow: scroll"></div>
 </div>
+
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-color.v1.min.js"></script>
